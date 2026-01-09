@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.shubhu.staybooking</groupId>
-	<artifactId>airBnbApp</artifactId>
+	<artifactId>airbnb-clone-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>airBnbApp</name>
 	<description>AirBnb Clone project in spring boot</description>
