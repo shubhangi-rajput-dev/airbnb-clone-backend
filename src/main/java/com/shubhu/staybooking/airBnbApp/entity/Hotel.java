@@ -20,6 +20,11 @@ public class Hotel {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
+    private String description;
+
+    private String country;
+
     private  String city;
 
     @Column(columnDefinition = "TEXT[]")
@@ -28,15 +33,16 @@ public class Hotel {
     @Column(columnDefinition = "TEXT[]")
     private String[] amenities;
 
+    @Column(nullable = false)
+    private Boolean active;
+
+    @Embedded
+    private HotelContactInfo contactInfo;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @Embedded
-    private HotelContactInfo contactInfo;
-
-    @Column(nullable = false)
-    private Boolean active;
 }
