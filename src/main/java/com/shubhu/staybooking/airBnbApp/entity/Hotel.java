@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -20,8 +21,8 @@ public class Hotel {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private String description;
+//    @Column(nullable = false)
+//    private String description;
 
     private String country;
 
@@ -45,4 +46,6 @@ public class Hotel {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "hotel")
+    private List<Room> rooms;
 }

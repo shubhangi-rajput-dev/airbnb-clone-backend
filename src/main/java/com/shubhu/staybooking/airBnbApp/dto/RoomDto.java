@@ -1,6 +1,7 @@
 package com.shubhu.staybooking.airBnbApp.dto;
 
 import lombok.Data;
+
 import java.math.BigDecimal;
 
 @Data
@@ -12,4 +13,5 @@ public class RoomDto {
     private String[] amenities;
     private Integer totalCount;
     private Integer capacity;
+
 }

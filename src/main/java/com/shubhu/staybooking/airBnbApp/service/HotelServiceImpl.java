@@ -2,8 +2,11 @@ package com.shubhu.staybooking.airBnbApp.service;
 
 import com.shubhu.staybooking.airBnbApp.dto.HotelDto;
 import com.shubhu.staybooking.airBnbApp.entity.Hotel;
+import com.shubhu.staybooking.airBnbApp.entity.Room;
 import com.shubhu.staybooking.airBnbApp.exception.ResourceNotFoundException;
 import com.shubhu.staybooking.airBnbApp.repository.HotelRepository;
+import com.shubhu.staybooking.airBnbApp.repository.RoomRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -17,6 +20,8 @@ public class HotelServiceImpl implements HotelService{
 
     private final HotelRepository hotelRepository;
     private final ModelMapper modelMapper;
+    private final InventoryService inventoryService;
+    private final RoomRepository roomRepository;
 
     @Override
     public HotelDto createNewHotel(HotelDto hotelDto) {
@@ -30,10 +35,53 @@ public class HotelServiceImpl implements HotelService{
 
     @Override
     public HotelDto getHotelById(Long id) {
-        log.info("Getting the with ID : {}", id);
+        log.info("Getting the hotel with ID : {}", id);
         Hotel hotel = hotelRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID : " + id));
         return modelMapper.map(hotel, HotelDto.class);
+    }
+
+    @Override
+    public HotelDto updateHotelById(Long id, HotelDto hotelDto) {
+        log.info("Update the with ID : {}", id);
+        Hotel hotel = hotelRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID : " + id));
+        modelMapper.map(hotelDto, hotel);
+        hotel.setId(id);
+        hotel = hotelRepository.save(hotel);
+        return modelMapper.map(hotel, HotelDto.class);
+    }
+
+    @Override
+    @Transactional
+    public void deleteHotelById(Long id) {
+        Hotel hotel = hotelRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID : " + id));
+
+        //Assuming only do it once
+        for(Room room : hotel.getRooms()){
+            inventoryService.deleteAllInventories(room);
+            roomRepository.deleteById(room.getId());
+        }
+        hotelRepository.deleteById(id);
+
+    }
+
+    @Override
+    @Transactional
+    public void activateHotel(Long id) {
+        log.info("Activating the with ID : {}", id);
+        Hotel hotel = hotelRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID : " + id));
+        hotel.setActive(true);
+
+        //Assuming only do it once
+        for(Room room : hotel.getRooms()){
+            inventoryService.initializeRoomForYear(room);
+        }
     }
 }
