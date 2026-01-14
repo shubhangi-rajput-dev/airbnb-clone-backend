@@ -1,7 +1,9 @@
 package com.shubhu.staybooking.airBnbApp.service;
 
 import com.shubhu.staybooking.airBnbApp.dto.HotelDto;
-import com.shubhu.staybooking.airBnbApp.entity.Hotel;
+import com.shubhu.staybooking.airBnbApp.dto.HotelInfoDto;
+
+import java.util.Optional;
 
 public interface HotelService {
     HotelDto createNewHotel(HotelDto hotelDto);
@@ -13,4 +15,6 @@ public interface HotelService {
     void deleteHotelById(Long id);
 
     void activateHotel(Long hotelId);
+
+    HotelInfoDto getHotelInfoById(Long hotelId);
 }
