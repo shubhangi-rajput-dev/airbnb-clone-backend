@@ -22,9 +22,8 @@ import java.time.temporal.ChronoUnit;
 @RequiredArgsConstructor
 @Slf4j
 
-public class InterfaceServiceImpl implements InventoryService{
+public class InventoryServiceImpl implements InventoryService{
     private final ModelMapper modelMapper;
-
     private final InventoryRepository inventoryRepository;
 
     @Override
@@ -44,9 +43,7 @@ public class InterfaceServiceImpl implements InventoryService{
                     .closed(false)
                     .build();
             inventoryRepository.save(inventory);
-
         }
-
     }
 
     @Override
@@ -65,12 +62,6 @@ public class InterfaceServiceImpl implements InventoryService{
                 hotelSearchRequest.getStartDate(),
                 hotelSearchRequest.getEndDate()
         ) + 1;
-        System.out.println("=============================="+hotelSearchRequest.getCity());
-        System.out.println("=============================="+hotelSearchRequest.getStartDate());
-        System.out.println("=============================="+hotelSearchRequest.getEndDate());
-        System.out.println("=============================="+hotelSearchRequest.getRoomsCount());
-        System.out.println("=============================="+dateCount);
-        System.out.println("=============================="+pageable);
 
         Page<Hotel> hotelPage = inventoryRepository.findHotelsWithAvailableInventory(
                 hotelSearchRequest.getCity(),
@@ -80,7 +71,6 @@ public class InterfaceServiceImpl implements InventoryService{
                 dateCount,
                 pageable
         );
-        System.out.println("=========="+hotelPage);
         return hotelPage.map((element) -> modelMapper.map(element, HotelDto.class));
     }
 }
