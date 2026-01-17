@@ -2,6 +2,7 @@ package com.shubhu.staybooking.airBnbApp.controller;
 
 import com.shubhu.staybooking.airBnbApp.dto.HotelDto;
 import com.shubhu.staybooking.airBnbApp.dto.HotelInfoDto;
+import com.shubhu.staybooking.airBnbApp.dto.HotelPriceDto;
 import com.shubhu.staybooking.airBnbApp.dto.HotelSearchRequestDto;
 import com.shubhu.staybooking.airBnbApp.service.HotelService;
 import com.shubhu.staybooking.airBnbApp.service.InventoryService;
@@ -20,8 +21,8 @@ public class HotelBrowseController {
     private final HotelService hotelService;
 
     @GetMapping("/search")
-    public ResponseEntity<Page<HotelDto>> searchHotels(@RequestBody HotelSearchRequestDto hotelSearchRequestDto) {
-        Page<HotelDto> page = inventoryService.searchHotels(hotelSearchRequestDto);
+    public ResponseEntity<Page<HotelPriceDto>> searchHotels(@RequestBody HotelSearchRequestDto hotelSearchRequestDto) {
+        var page = inventoryService.searchHotels(hotelSearchRequestDto);
         return ResponseEntity.ok(page);
     }
 

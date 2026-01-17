@@ -70,7 +70,7 @@ public class BookingServiceImpl implements BookingService {
                 .roomsCount(bookingRequestDto.getRoomsCount())
                 .amount(BigDecimal.TEN)
                 .build();
-        booking = bookingRepository.save(booking);
+        booking = bookingRepository.saveAndFlush(booking);
 
         return modelMapper.map(booking, BookingDto.class);
     }
