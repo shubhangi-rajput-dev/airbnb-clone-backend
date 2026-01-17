@@ -1,7 +1,7 @@
 package com.shubhu.staybooking.airBnbApp.service;
 
 import com.shubhu.staybooking.airBnbApp.dto.HotelDto;
-import com.shubhu.staybooking.airBnbApp.dto.HotelSearchRequest;
+import com.shubhu.staybooking.airBnbApp.dto.HotelSearchRequestDto;
 import com.shubhu.staybooking.airBnbApp.entity.Hotel;
 import com.shubhu.staybooking.airBnbApp.entity.Inventory;
 import com.shubhu.staybooking.airBnbApp.entity.Room;
@@ -35,6 +35,7 @@ public class InventoryServiceImpl implements InventoryService{
                     .hotel(room.getHotel())
                     .room(room)
                     .bookedCount(0)
+                    .reservedCount(0)
                     .city(room.getHotel().getCity())
                     .date(today)
                     .price(room.getBasePrice())
@@ -48,26 +49,28 @@ public class InventoryServiceImpl implements InventoryService{
 
     @Override
     public void deleteAllInventories(Room room) {
+        log.info("Deleting the inventories of room with id : {}", room.getId());
         inventoryRepository.deleteByRoom(room);
     }
 
     @Override
-    public Page<HotelDto> searchHotels(HotelSearchRequest hotelSearchRequest) {
-        Pageable pageable = PageRequest.of(hotelSearchRequest.getPage(), hotelSearchRequest.getSize());
+    public Page<HotelDto> searchHotels(HotelSearchRequestDto hotelSearchRequestDto) {
+        log.info("Searching hotels for {} city, from {}, to {}", hotelSearchRequestDto.getCity(), hotelSearchRequestDto.getStartDate(), hotelSearchRequestDto.getEndDate());
+        Pageable pageable = PageRequest.of(hotelSearchRequestDto.getPage(), hotelSearchRequestDto.getSize());
 
         /* Calculate the days count between start date and end date .
         Adding one into the response for all dates count not only the difference dated count */
 
         long dateCount = ChronoUnit.DAYS.between(
-                hotelSearchRequest.getStartDate(),
-                hotelSearchRequest.getEndDate()
+                hotelSearchRequestDto.getStartDate(),
+                hotelSearchRequestDto.getEndDate()
         ) + 1;
 
         Page<Hotel> hotelPage = inventoryRepository.findHotelsWithAvailableInventory(
-                hotelSearchRequest.getCity(),
-                hotelSearchRequest.getStartDate(),
-                hotelSearchRequest.getEndDate(),
-                hotelSearchRequest.getRoomsCount(),
+                hotelSearchRequestDto.getCity(),
+                hotelSearchRequestDto.getStartDate(),
+                hotelSearchRequestDto.getEndDate(),
+                hotelSearchRequestDto.getRoomsCount(),
                 dateCount,
                 pageable
         );
