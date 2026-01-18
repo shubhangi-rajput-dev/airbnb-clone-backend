@@ -7,7 +7,6 @@ import com.shubhu.staybooking.airBnbApp.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -17,7 +16,7 @@ public class HotelBookingController {
 
     private final BookingService bookingService;
 
-    @PostMapping
+    @PostMapping("/init")
     public ResponseEntity<BookingDto> initialiseBooking(@RequestBody BookingRequestDto bookingRequestDto) {
         return ResponseEntity.ok(bookingService.initialiseBooking(bookingRequestDto));
     }

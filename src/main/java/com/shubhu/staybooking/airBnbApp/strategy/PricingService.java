@@ -1,7 +1,6 @@
-package com.shubhu.staybooking.airBnbApp.service;
+package com.shubhu.staybooking.airBnbApp.strategy;
 
 import com.shubhu.staybooking.airBnbApp.entity.Inventory;
-import com.shubhu.staybooking.airBnbApp.strategy.*;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -11,7 +10,7 @@ public class PricingService {
 
     public BigDecimal calculateDynamicPricing(Inventory inventory) {
         PricingStrategy pricingStrategy = new BasePricingStrategy();
-        
+
         /*Apply the additional strategies*/
         pricingStrategy = new SurgePricingStrategy(pricingStrategy);
         pricingStrategy = new OccupancyPricingStrategy(pricingStrategy);

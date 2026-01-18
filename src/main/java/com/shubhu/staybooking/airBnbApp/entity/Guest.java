@@ -4,7 +4,6 @@ import com.shubhu.staybooking.airBnbApp.entity.enums.Gender;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import java.util.Set;
 
 @Entity
 @Getter
@@ -13,7 +12,7 @@ import java.util.Set;
 public class Guest {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne

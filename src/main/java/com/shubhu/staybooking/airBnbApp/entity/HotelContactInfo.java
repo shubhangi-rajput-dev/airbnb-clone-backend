@@ -1,6 +1,6 @@
 package com.shubhu.staybooking.airBnbApp.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Embeddable;
 import lombok.Getter;
 import lombok.Setter;
 

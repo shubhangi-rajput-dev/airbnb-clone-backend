@@ -3,6 +3,7 @@ package com.shubhu.staybooking.airBnbApp.advice;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
+
 import java.util.List;
 
 @Data
@@ -10,5 +11,5 @@ import java.util.List;
 public class ApiError {
     private HttpStatus status;
     private String message;
-    private List<String> subError;
+    private List<String> subErrors;
 }

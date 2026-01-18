@@ -1,6 +1,5 @@
 package com.shubhu.staybooking.airBnbApp.controller;
 
-import com.shubhu.staybooking.airBnbApp.dto.HotelDto;
 import com.shubhu.staybooking.airBnbApp.dto.HotelInfoDto;
 import com.shubhu.staybooking.airBnbApp.dto.HotelPriceDto;
 import com.shubhu.staybooking.airBnbApp.dto.HotelSearchRequestDto;

@@ -8,19 +8,18 @@ import com.shubhu.staybooking.airBnbApp.entity.Room;
 import com.shubhu.staybooking.airBnbApp.exception.ResourceNotFoundException;
 import com.shubhu.staybooking.airBnbApp.repository.HotelRepository;
 import com.shubhu.staybooking.airBnbApp.repository.RoomRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 
-public class HotelServiceImpl implements HotelService{
+public class HotelServiceImpl implements HotelService {
 
     private final HotelRepository hotelRepository;
     private final ModelMapper modelMapper;
@@ -33,7 +32,7 @@ public class HotelServiceImpl implements HotelService{
         Hotel hotel = modelMapper.map(hotelDto, Hotel.class);
         hotel.setActive(false);
         hotel = hotelRepository.save(hotel);
-        log.info("Creating a new hotel with ID : {}", hotelDto.getId());
+        log.info("Created a new hotel with ID : {}", hotelDto.getId());
         return modelMapper.map(hotel, HotelDto.class);
     }
 
@@ -48,7 +47,7 @@ public class HotelServiceImpl implements HotelService{
 
     @Override
     public HotelDto updateHotelById(Long id, HotelDto hotelDto) {
-        log.info("Update the with ID : {}", id);
+        log.info("Updating the hotel with ID : {}", id);
         Hotel hotel = hotelRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID : " + id));
@@ -66,7 +65,7 @@ public class HotelServiceImpl implements HotelService{
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID : " + id));
 
         //Assuming only do it once
-        for(Room room : hotel.getRooms()){
+        for (Room room : hotel.getRooms()) {
             inventoryService.deleteAllInventories(room);
             roomRepository.deleteById(room.getId());
         }
@@ -84,8 +83,8 @@ public class HotelServiceImpl implements HotelService{
         hotel.setActive(true);
 
         //Assuming only do it once
-        for(Room room : hotel.getRooms()){
-            inventoryService.initializeRoomForYear(room);
+        for (Room room : hotel.getRooms()) {
+            inventoryService.initializeRoomForAYear(room);
         }
     }
 

@@ -3,11 +3,8 @@ package com.shubhu.staybooking.airBnbApp.advice;
 import com.shubhu.staybooking.airBnbApp.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -47,7 +44,7 @@ public class GlobalExceptionHandler {
 //        return buildErrorResponseEntity(apiError);
 //    }
 
-    private ResponseEntity<ApiResponse<?>> buildErrorResponseEntity(ApiError apiError){
+    private ResponseEntity<ApiResponse<?>> buildErrorResponseEntity(ApiError apiError) {
         return new ResponseEntity<>(new ApiResponse<>(apiError), apiError.getStatus());
     }
 }

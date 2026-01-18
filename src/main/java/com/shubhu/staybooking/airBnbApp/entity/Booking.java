@@ -3,7 +3,8 @@ package com.shubhu.staybooking.airBnbApp.entity;
 import com.shubhu.staybooking.airBnbApp.entity.enums.BookingStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,7 +21,7 @@ import java.util.Set;
 public class Booking {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -33,7 +34,7 @@ public class Booking {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User users;
+    private User user;
 
     @Column(nullable = false)
     private Integer roomsCount;

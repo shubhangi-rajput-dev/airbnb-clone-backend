@@ -1,5 +1,7 @@
 package com.shubhu.staybooking.airBnbApp.service;
+
 import com.shubhu.staybooking.airBnbApp.dto.RoomDto;
+
 import java.util.List;
 
 public interface RoomService {
@@ -8,10 +10,10 @@ public interface RoomService {
 
     List<RoomDto> getAllRoomsInHotel(Long hotelId);
 
-    RoomDto getRoomById(Long id);
+    RoomDto getRoomById(Long roomId);
 
-    RoomDto updateRoomById(Long id, RoomDto roomDto);
+    RoomDto updateRoomById(Long roomId, RoomDto roomDto);
 
-    void deleteRoomById(Long id);
+    void deleteRoomById(Long roomId);
 
 }

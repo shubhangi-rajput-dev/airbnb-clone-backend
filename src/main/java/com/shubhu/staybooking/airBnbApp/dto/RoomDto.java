@@ -1,7 +1,6 @@
 package com.shubhu.staybooking.airBnbApp.dto;
 
 import lombok.Data;
-
 import java.math.BigDecimal;
 
 @Data

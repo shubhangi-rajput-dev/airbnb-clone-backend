@@ -1,9 +1,7 @@
 package com.shubhu.staybooking.airBnbApp.service;
 
-import com.shubhu.staybooking.airBnbApp.dto.HotelDto;
 import com.shubhu.staybooking.airBnbApp.dto.HotelPriceDto;
 import com.shubhu.staybooking.airBnbApp.dto.HotelSearchRequestDto;
-import com.shubhu.staybooking.airBnbApp.entity.Hotel;
 import com.shubhu.staybooking.airBnbApp.entity.Inventory;
 import com.shubhu.staybooking.airBnbApp.entity.Room;
 import com.shubhu.staybooking.airBnbApp.repository.HotelMinPriceRepository;
@@ -24,16 +22,16 @@ import java.time.temporal.ChronoUnit;
 @RequiredArgsConstructor
 @Slf4j
 
-public class InventoryServiceImpl implements InventoryService{
+public class InventoryServiceImpl implements InventoryService {
     private final ModelMapper modelMapper;
     private final InventoryRepository inventoryRepository;
     private final HotelMinPriceRepository hotelMinPriceRepository;
 
     @Override
-    public void initializeRoomForYear(Room room) {
+    public void initializeRoomForAYear(Room room) {
         LocalDate today = LocalDate.now();
         LocalDate endDate = today.plusYears(1);
-        for(; !today.isAfter(endDate); today=today.plusDays(1)) {
+        for (; !today.isAfter(endDate); today = today.plusDays(1)) {
             Inventory inventory = Inventory.builder()
                     .hotel(room.getHotel())
                     .room(room)

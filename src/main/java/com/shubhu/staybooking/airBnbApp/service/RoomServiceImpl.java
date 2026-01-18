@@ -6,12 +6,11 @@ import com.shubhu.staybooking.airBnbApp.entity.Room;
 import com.shubhu.staybooking.airBnbApp.exception.ResourceNotFoundException;
 import com.shubhu.staybooking.airBnbApp.repository.HotelRepository;
 import com.shubhu.staybooking.airBnbApp.repository.RoomRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,7 +18,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 
-public class RoomServiceImpl implements RoomService{
+public class RoomServiceImpl implements RoomService {
 
     private final RoomRepository roomRepository;
     private final HotelRepository hotelRepository;
@@ -28,7 +27,7 @@ public class RoomServiceImpl implements RoomService{
 
     @Override
     public RoomDto createNewRoom(Long hotelId, RoomDto roomDto) {
-        log.info("Creating a new room in hotel ID : {}", hotelId);
+        log.info("Creating a new room in hotel with ID : {}", hotelId);
         Hotel hotel = hotelRepository
                 .findById(hotelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID : " + hotelId));
@@ -36,15 +35,15 @@ public class RoomServiceImpl implements RoomService{
         room.setHotel(hotel);
         room = roomRepository.save(room);
 
-        if(hotel.getActive()) {
-            inventoryService.initializeRoomForYear(room);
+        if (hotel.getActive()) {
+            inventoryService.initializeRoomForAYear(room);
         }
         return modelMapper.map(room, RoomDto.class);
     }
 
     @Override
     public List<RoomDto> getAllRoomsInHotel(Long hotelId) {
-        log.info("Getting all the room in hotel with Id : {}", hotelId);
+        log.info("Getting all rooms in hotel with ID : {}", hotelId);
         Hotel hotel = hotelRepository
                 .findById(hotelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID : " + hotelId));
@@ -56,34 +55,34 @@ public class RoomServiceImpl implements RoomService{
     }
 
     @Override
-    public RoomDto getRoomById(Long id) {
-        log.info("Getting the room with Id : {}", id);
+    public RoomDto getRoomById(Long roomId) {
+        log.info("Getting the room with Id : {}", roomId);
         Room room = roomRepository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID : " + id));
+                .findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID : " + roomId));
         return modelMapper.map(room, RoomDto.class);
     }
 
     @Override
-    public RoomDto updateRoomById(Long id, RoomDto roomDto) {
-        log.info("Update the room with ID : {}", id);
+    public RoomDto updateRoomById(Long roomId, RoomDto roomDto) {
+        log.info("Update the room with ID : {}", roomId);
         Room room = roomRepository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID : " + id));
+                .findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID : " + roomId));
         modelMapper.map(roomDto, room);
-        room.setId(id);
+        room.setId(roomId);
         room = roomRepository.save(room);
         return modelMapper.map(room, RoomDto.class);
     }
 
     @Override
     @Transactional
-    public void deleteRoomById(Long id) {
+    public void deleteRoomById(Long roomId) {
         Room room = roomRepository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID : " + id));
+                .findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID : " + roomId));
         inventoryService.deleteAllInventories(room);
-        roomRepository.deleteById(id);
+        roomRepository.deleteById(roomId);
     }
 
 }

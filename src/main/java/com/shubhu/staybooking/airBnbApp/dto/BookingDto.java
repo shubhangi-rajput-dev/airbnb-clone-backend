@@ -2,7 +2,6 @@ package com.shubhu.staybooking.airBnbApp.dto;
 
 import com.shubhu.staybooking.airBnbApp.entity.enums.BookingStatus;
 import lombok.Data;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
