@@ -6,12 +6,16 @@ import com.shubhu.staybooking.airBnbApp.dto.GuestDto;
 import com.shubhu.staybooking.airBnbApp.entity.*;
 import com.shubhu.staybooking.airBnbApp.entity.enums.BookingStatus;
 import com.shubhu.staybooking.airBnbApp.exception.ResourceNotFoundException;
+import com.shubhu.staybooking.airBnbApp.exception.UnAuthorisedException;
 import com.shubhu.staybooking.airBnbApp.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.naming.AuthenticationException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -66,7 +70,13 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingDto addGuests(Long bookingId, List<GuestDto> guestDtoList) {
         log.info("Adding guests for booking with id : {}", bookingId);
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new ResourceNotFoundException("Booking not found with id : " + bookingId));
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() ->
+                new ResourceNotFoundException("Booking not found with id : " + bookingId));
+        User user = getCurrentUser();
+
+        if(user.equals(booking.getUser())) {
+            throw new UnAuthorisedException("Booking does not belong to this user with id : " + user.getId());
+        }
 
         if (hasBookingExpired(booking)) {
             throw new IllegalStateException("Booking has already expired");
@@ -93,10 +103,7 @@ public class BookingServiceImpl implements BookingService {
         return booking.getCreatedAt().plusMinutes(10).isBefore(LocalDateTime.now());
     }
 
-    /* Create dummy user for testing purpose */
     public User getCurrentUser() {
-        User user = new User();
-        user.setId(1L); /*TODO : Remove Dummy user*/
-        return user;
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }
