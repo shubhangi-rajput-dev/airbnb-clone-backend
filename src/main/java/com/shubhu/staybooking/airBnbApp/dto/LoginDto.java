@@ -1,9 +1,19 @@
 package com.shubhu.staybooking.airBnbApp.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+/**
+ * DTO used for user login authentication request.
+ */
 @Data
 public class LoginDto {
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
     private String email;
+
+    @NotBlank(message = "Password is required")
     private String password;
 }

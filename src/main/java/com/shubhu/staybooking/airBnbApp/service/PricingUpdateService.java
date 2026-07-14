@@ -27,17 +27,26 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
+/*
+ * Service responsible for scheduled dynamic pricing updates.
+ */
 public class PricingUpdateService {
 
-    /* Scheduler to update the inventory and HotelMinPrice tables every hour */
+    // Scheduler updates inventory prices and hotel minimum prices periodically.
 
+    /** Repository for hotel persistence operations. */
     private final HotelRepository hotelRepository;
+    /** Repository for inventory persistence operations. */
     private final InventoryRepository inventoryRepository;
+    /** Repository for hotel minimum price persistence operations. */
     private final HotelMinPriceRepository hotelMinPriceRepository;
+    /** Service responsible for calculating dynamic pricing. */
     private final PricingService pricingService;
 
-    @Scheduled(cron = "*/5 * * * * *")
-    //@Scheduled(cron = "0 0 * * * *")
+    /**
+     * Scheduled task that updates prices for all hotels in batches.
+     */
+    //@Scheduled(cron = "*/5 * * * * *")
     public void updatePrices() {
         int page = 0;
         int batchSize = 100;
@@ -54,6 +63,11 @@ public class PricingUpdateService {
 
     }
 
+    /**
+     * Updates inventory and minimum prices for a specific hotel.
+     *
+     * @param hotel hotel whose prices are updated
+     */
     private void updateHotelPrices(Hotel hotel) {
         log.info("Updating hotel prices for hotel ID : {}", hotel.getId());
         LocalDate startDate = LocalDate.now();
@@ -66,6 +80,14 @@ public class PricingUpdateService {
         updateHotelMinPrice(hotel, inventoryList, startDate, endDate);
     }
 
+    /**
+     * Updates daily minimum hotel prices based on inventory prices.
+     *
+     * @param hotel hotel entity
+     * @param inventoryList inventory records
+     * @param startDate price update start date
+     * @param endDate price update end date
+     */
     private void updateHotelMinPrice(Hotel hotel, List<Inventory> inventoryList, LocalDate startDate, LocalDate endDate) {
         // Compute minimum price per day for the hotel
         Map<LocalDate, BigDecimal> dailyMinPrices = inventoryList.stream()
@@ -89,6 +111,11 @@ public class PricingUpdateService {
         hotelMinPriceRepository.saveAll(hotelPrices);
     }
 
+    /**
+     * Calculates and updates dynamic prices for inventory records.
+     *
+     * @param inventoryList inventory records to update
+     */
     private void updateInventoryPrices(List<Inventory> inventoryList) {
         inventoryList.forEach(inventory -> {
             BigDecimal dynamicPrice = pricingService.calculateDynamicPricing(inventory);

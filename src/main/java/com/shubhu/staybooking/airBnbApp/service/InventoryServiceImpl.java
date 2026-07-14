@@ -2,6 +2,8 @@ package com.shubhu.staybooking.airBnbApp.service;
 
 import com.shubhu.staybooking.airBnbApp.dto.HotelPriceDto;
 import com.shubhu.staybooking.airBnbApp.dto.HotelSearchRequestDto;
+import com.shubhu.staybooking.airBnbApp.dto.HotelDto;
+import com.shubhu.staybooking.airBnbApp.dto.HotelPriceResponseDto;
 import com.shubhu.staybooking.airBnbApp.entity.Inventory;
 import com.shubhu.staybooking.airBnbApp.entity.Room;
 import com.shubhu.staybooking.airBnbApp.repository.HotelMinPriceRepository;
@@ -13,7 +15,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -21,10 +22,15 @@ import java.time.temporal.ChronoUnit;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-
+/*
+ * Service implementation handling inventory-related business operations.
+ */
 public class InventoryServiceImpl implements InventoryService {
+    /** Mapper used for entity and DTO conversion. */
     private final ModelMapper modelMapper;
+    /** Repository for inventory persistence operations. */
     private final InventoryRepository inventoryRepository;
+    /** Repository for hotel minimum price operations. */
     private final HotelMinPriceRepository hotelMinPriceRepository;
 
     @Override
@@ -55,21 +61,20 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public Page<HotelPriceDto> searchHotels(HotelSearchRequestDto hotelSearchRequestDto) {
+    public Page<HotelPriceResponseDto> searchHotels(HotelSearchRequestDto hotelSearchRequestDto) {
         log.info("Searching hotels for {} city, from {}, to {}", hotelSearchRequestDto.getCity(), hotelSearchRequestDto.getStartDate(), hotelSearchRequestDto.getEndDate());
         Pageable pageable = PageRequest.of(hotelSearchRequestDto.getPage(), hotelSearchRequestDto.getSize());
 
-        /* Calculate the days count between start date and end date .
-        Adding one into the response for all dates count not only the difference dated count */
+        // Calculates total booking days including both start and end dates.
 
         long dateCount = ChronoUnit.DAYS.between(
                 hotelSearchRequestDto.getStartDate(),
                 hotelSearchRequestDto.getEndDate()
         ) + 1;
 
-        /* Business Logic : 90 days*/
+        // Searches hotels using city, date range, and required room count criteria.
 
-        Page<HotelPriceDto> hotelPage = hotelMinPriceRepository.findHotelsWithAvailableInventory(
+        Page<HotelPriceDto> hotelPricePage = hotelMinPriceRepository.findHotelsWithAvailableInventory(
                 hotelSearchRequestDto.getCity(),
                 hotelSearchRequestDto.getStartDate(),
                 hotelSearchRequestDto.getEndDate(),
@@ -77,6 +82,10 @@ public class InventoryServiceImpl implements InventoryService {
                 dateCount,
                 pageable
         );
-        return hotelPage;
+
+        return hotelPricePage.map(dto -> {
+            HotelDto hotelDto = modelMapper.map(dto.getHotel(), HotelDto.class);
+            return new HotelPriceResponseDto(hotelDto, dto.getPrice());
+        });
     }
 }

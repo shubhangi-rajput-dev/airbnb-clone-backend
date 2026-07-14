@@ -20,12 +20,18 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-
+/*
+ * Service implementation handling room-related business operations.
+ */
 public class RoomServiceImpl implements RoomService {
 
+    /** Repository for room persistence operations. */
     private final RoomRepository roomRepository;
+    /** Repository for hotel persistence operations. */
     private final HotelRepository hotelRepository;
+    /** Service responsible for room inventory operations. */
     private final InventoryService inventoryService;
+    /** Mapper used for entity and DTO conversion. */
     private final ModelMapper modelMapper;
 
     @Override

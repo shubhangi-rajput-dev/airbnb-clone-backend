@@ -9,6 +9,9 @@ import lombok.Setter;
 @Getter
 @Setter
 
+/*
+ * Entity representing guest details for a booking.
+ */
 public class Guest {
 
     @Id

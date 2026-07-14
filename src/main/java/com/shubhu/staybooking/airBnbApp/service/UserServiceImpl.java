@@ -12,8 +12,12 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 
+/*
+ * Service implementation handling user operations and Spring Security user loading.
+ */
 public class UserServiceImpl implements UserService, UserDetailsService {
 
+    /** Repository for user persistence operations. */
     private final UserRepository userRepository;
 
     @Override

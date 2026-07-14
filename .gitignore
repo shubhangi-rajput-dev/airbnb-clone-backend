@@ -34,3 +34,4 @@ build/
 
 #### Git Ignore ###
 pom.xml
+logs

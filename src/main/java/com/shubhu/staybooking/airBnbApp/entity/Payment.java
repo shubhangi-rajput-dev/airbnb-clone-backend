@@ -9,6 +9,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing payment details for a booking.
+ */
 @Entity
 @Getter
 @Setter

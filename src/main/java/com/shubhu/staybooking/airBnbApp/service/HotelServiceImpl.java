@@ -21,19 +21,24 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-
+/*
+ * Service implementation handling hotel-related business operations.
+ */
 public class HotelServiceImpl implements HotelService {
 
+    /** Repository for hotel persistence operations. */
     private final HotelRepository hotelRepository;
+    /** Mapper used for converting between entities and DTOs. */
     private final ModelMapper modelMapper;
+    /** Service responsible for hotel inventory operations. */
     private final InventoryService inventoryService;
+    /** Repository for room persistence operations. */
     private final RoomRepository roomRepository;
 
     @Override
     public HotelDto createNewHotel(HotelDto hotelDto) {
         log.info("Creating a new hotel with name : {}", hotelDto.getName());
         Hotel hotel = modelMapper.map(hotelDto, Hotel.class);
-        hotel.setActive(false);
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         hotel.setOwner(user);
         hotel = hotelRepository.save(hotel);
@@ -80,7 +85,7 @@ public class HotelServiceImpl implements HotelService {
         if(!user.equals(hotel.getOwner())){
             throw new UnAuthorisedException("This owner does not own this hotel with id : " + id);
         }
-        //Assuming only do it once
+        // Initializes inventory only once when a hotel is activated.
         for (Room room : hotel.getRooms()) {
             inventoryService.deleteAllInventories(room);
             roomRepository.deleteById(room.getId());
@@ -101,7 +106,7 @@ public class HotelServiceImpl implements HotelService {
             throw new UnAuthorisedException("This owner does not own this hotel with id : " + id);
         }
         hotel.setActive(true);
-        //Assuming only do it once
+        // Initializes inventory only once when a hotel is activated.
         for (Room room : hotel.getRooms()) {
             inventoryService.initializeRoomForAYear(room);
         }

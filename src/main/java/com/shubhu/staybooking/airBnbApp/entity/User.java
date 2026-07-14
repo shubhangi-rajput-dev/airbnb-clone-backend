@@ -12,6 +12,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Entity representing application user details and security information.
+ */
 @Entity
 @Getter
 @Setter

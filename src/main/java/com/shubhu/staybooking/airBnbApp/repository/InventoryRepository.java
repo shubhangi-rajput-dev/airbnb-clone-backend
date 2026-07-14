@@ -13,13 +13,23 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Repository interface for managing inventory entities and availability queries.
+ */
 public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 
     void deleteByRoom(Room room);
 
-    /*
-     * Executes a query to return a paginated list of hotels
-     * that have sufficient available inventory for the given date range.
+    /**
+     * Finds hotels with available inventory for the requested date range and room count.
+     *
+     * @param city search city
+     * @param startDate booking start date
+     * @param endDate booking end date
+     * @param roomsCount required number of rooms
+     * @param dateCount total number of booking dates
+     * @param pageable pagination details
+     * @return paginated list of available hotels
      */
     @Query("""
                 SELECT DISTINCT i.hotel
@@ -42,6 +52,15 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
             Pageable pageable
     );
 
+    /**
+     * Finds and locks available inventory records to prevent concurrent booking conflicts.
+     *
+     * @param roomId room identifier
+     * @param startDate booking start date
+     * @param endDate booking end date
+     * @param roomsCount required number of rooms
+     * @return available inventory records
+     */
     @Query("""
             SELECT i
             FROM Inventory i
@@ -58,5 +77,13 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
             @Param("roomsCount") Integer roomsCount
     );
 
+    /**
+     * Finds inventory records for a hotel within a date range.
+     *
+     * @param hotel hotel entity
+     * @param startDate start date
+     * @param endDate end date
+     * @return inventory records within the date range
+     */
     List<Inventory> findByHotelAndDateBetween(Hotel hotel, LocalDate startDate, LocalDate endDate);
 }

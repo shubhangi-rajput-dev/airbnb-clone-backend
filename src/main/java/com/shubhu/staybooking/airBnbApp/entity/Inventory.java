@@ -8,9 +8,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing room inventory details for a hotel.
+ */
 @Entity
 @Getter
 @Setter
+// Ensures that the same hotel, room, and date combination is stored only once in inventory.
 @Table(
         uniqueConstraints = @UniqueConstraint(
                 name = "unique_hotel_room_date",

@@ -10,6 +10,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing minimum hotel price for a specific date.
+ */
 @Entity
 @Getter
 @Setter
@@ -27,7 +30,7 @@ public class HotelMinPrice {
     private LocalDate date;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price; //cheapest room price on a particular day
+    private BigDecimal price;
 
     @CreationTimestamp
     @Column(updatable = false)

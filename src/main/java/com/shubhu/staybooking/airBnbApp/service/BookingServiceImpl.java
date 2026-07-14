@@ -14,24 +14,30 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.naming.AuthenticationException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+/**
+ * Service implementation handling booking-related business operations.
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
 
 public class BookingServiceImpl implements BookingService {
+    /** Repository for guest persistence operations. */
     private final GuestRepository guestRepository;
-
+    /** Repository for booking persistence operations. */
     private final BookingRepository bookingRepository;
+    /** Repository for hotel persistence operations. */
     private final HotelRepository hotelRepository;
+    /** Repository for room persistence operations. */
     private final RoomRepository roomRepository;
+    /** Repository for inventory persistence operations. */
     private final InventoryRepository inventoryRepository;
+    /** Mapper used for entity and DTO conversion. */
     private final ModelMapper modelMapper;
 
     @Override
@@ -50,16 +56,16 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalStateException("Room is not available anymore!");
         }
 
-        /* Reserve the room/ update the booked count of inventories*/
+        // Reserves rooms by updating the booked count in inventory records.
         for (Inventory inventory : inventoryList) {
             inventory.setReservedCount(inventory.getReservedCount() + bookingRequestDto.getRoomsCount());
         }
 
         inventoryRepository.saveAll(inventoryList);
 
-        /*TODO : Calculating dynamic amount*/
+        // TODO: Calculate dynamic booking amount based on pricing rules.
 
-        /* Create the Booking */
+        // Creates and saves the booking record.
         Booking booking = Booking.builder().bookingStatus(BookingStatus.RESERVED).hotel(hotel).room(room).checkInDate(bookingRequestDto.getCheckInDate()).checkOutDate(bookingRequestDto.getCheckOutDate()).user(getCurrentUser()).roomsCount(bookingRequestDto.getRoomsCount()).amount(BigDecimal.TEN).build();
 
         booking = bookingRepository.save(booking);
@@ -74,7 +80,7 @@ public class BookingServiceImpl implements BookingService {
                 new ResourceNotFoundException("Booking not found with id : " + bookingId));
         User user = getCurrentUser();
 
-        if(user.equals(booking.getUser())) {
+        if(!user.getId().equals(booking.getUser().getId())) {
             throw new UnAuthorisedException("Booking does not belong to this user with id : " + user.getId());
         }
 
@@ -98,7 +104,7 @@ public class BookingServiceImpl implements BookingService {
         return modelMapper.map(booking, BookingDto.class);
     }
 
-    /* Booking is valid  d till the 10 minutes after reservation */
+    // A booking remains valid for 10 minutes after reservation creation.
     public boolean hasBookingExpired(Booking booking) {
         return booking.getCreatedAt().plusMinutes(10).isBefore(LocalDateTime.now());
     }
