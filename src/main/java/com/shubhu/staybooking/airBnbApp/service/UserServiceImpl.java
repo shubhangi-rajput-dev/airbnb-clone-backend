@@ -3,6 +3,7 @@ package com.shubhu.staybooking.airBnbApp.service;
 import com.shubhu.staybooking.airBnbApp.entity.User;
 import com.shubhu.staybooking.airBnbApp.exception.ResourceNotFoundException;
 import com.shubhu.staybooking.airBnbApp.repository.UserRepository;
+import com.shubhu.staybooking.airBnbApp.security.CustomUserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -22,11 +23,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public User getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User is not found with ID : " + id ));
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User is not found with ID : " + id ));
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByEmail(username).orElse(null);
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
+        return new CustomUserPrincipal(user);
     }
 }

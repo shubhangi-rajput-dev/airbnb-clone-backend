@@ -10,9 +10,11 @@ import com.shubhu.staybooking.airBnbApp.exception.ResourceNotFoundException;
 import com.shubhu.staybooking.airBnbApp.exception.UnAuthorisedException;
 import com.shubhu.staybooking.airBnbApp.repository.HotelRepository;
 import com.shubhu.staybooking.airBnbApp.repository.RoomRepository;
+import com.shubhu.staybooking.airBnbApp.security.CustomUserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +41,7 @@ public class HotelServiceImpl implements HotelService {
     public HotelDto createNewHotel(HotelDto hotelDto) {
         log.info("Creating a new hotel with name : {}", hotelDto.getName());
         Hotel hotel = modelMapper.map(hotelDto, Hotel.class);
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = getCurrentUser();
         hotel.setOwner(user);
         hotel = hotelRepository.save(hotel);
         log.info("Created a new hotel with ID : {}", hotelDto.getId());
@@ -52,7 +54,7 @@ public class HotelServiceImpl implements HotelService {
         Hotel hotel = hotelRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID : " + id));
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = getCurrentUser();
         if(!user.equals(hotel.getOwner())){
             throw new UnAuthorisedException("This owner does not own this hotel with id : " + id);
         }
@@ -65,7 +67,7 @@ public class HotelServiceImpl implements HotelService {
         Hotel hotel = hotelRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID : " + id));
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = getCurrentUser();
         if(!user.equals(hotel.getOwner())){
             throw new UnAuthorisedException("This owner does not own this hotel with id : " + id);
         }
@@ -81,7 +83,7 @@ public class HotelServiceImpl implements HotelService {
         Hotel hotel = hotelRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID : " + id));
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = getCurrentUser();
         if(!user.equals(hotel.getOwner())){
             throw new UnAuthorisedException("This owner does not own this hotel with id : " + id);
         }
@@ -101,7 +103,7 @@ public class HotelServiceImpl implements HotelService {
         Hotel hotel = hotelRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID : " + id));
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = getCurrentUser();
         if(!user.equals(hotel.getOwner())){
             throw new UnAuthorisedException("This owner does not own this hotel with id : " + id);
         }
@@ -122,5 +124,19 @@ public class HotelServiceImpl implements HotelService {
                 .map((element) -> modelMapper.map(element, RoomDto.class))
                 .toList();
         return new HotelInfoDto(modelMapper.map(hotel, HotelDto.class), rooms);
+    }
+
+    /**
+     * Retrieves the currently authenticated user from Spring Security context.
+     *
+     * @return currently authenticated application user
+     */
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        CustomUserPrincipal principal =
+                (CustomUserPrincipal) authentication.getPrincipal();
+
+        return principal.getUser();
     }
 }

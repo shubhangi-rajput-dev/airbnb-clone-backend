@@ -79,7 +79,6 @@ public class InventoryServiceImpl implements InventoryService {
                 hotelSearchRequestDto.getStartDate(),
                 hotelSearchRequestDto.getEndDate(),
                 hotelSearchRequestDto.getRoomsCount(),
-                dateCount,
                 pageable
         );
 
