@@ -26,4 +26,14 @@ public interface BookingService {
      * @return updated booking details
      */
     BookingDto addGuests(Long bookingId, List<GuestDto> guestDtoList);
+
+    /**
+     * Initiates the payment process for an existing booking.
+     * Creates a payment session with the configured payment gateway
+     * and returns the checkout session URL.
+     *
+     * @param bookingId unique identifier of the booking
+     * @return checkout session URL for redirecting the user to complete payment
+     */
+    String initiatePayment(Long bookingId);
 }

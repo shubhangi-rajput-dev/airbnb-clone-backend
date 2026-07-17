@@ -16,6 +16,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
 import java.util.Optional;
 import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -116,13 +118,15 @@ class UserServiceImplTest {
      * Verifies that {@code null} is returned when no user exists for the given email.
      */
     @Test
-    void loadUserByUsername_whenEmailIsNotPresent_thenReturnNull() {
+    void loadUserByUsername_whenEmailIsNotPresent_thenThrowException() {
         // Arrange
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-        // Act
-        UserDetails userDetails = userService.loadUserByUsername(mockUser.getEmail());
-        // Assert
-        assertThat(userDetails).isNull();
+        when(userRepository.findByEmail(anyString()))
+                .thenReturn(Optional.empty());
+        // Act & Assert
+        assertThatThrownBy(() ->
+                userService.loadUserByUsername(mockUser.getEmail()))
+                .isInstanceOf(UsernameNotFoundException.class)
+                .hasMessage("User not found with email: " + mockUser.getEmail());
         verify(userRepository).findByEmail(mockUser.getEmail());
     }
 }

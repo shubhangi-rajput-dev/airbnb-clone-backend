@@ -8,9 +8,11 @@ import com.shubhu.staybooking.airBnbApp.exception.ResourceNotFoundException;
 import com.shubhu.staybooking.airBnbApp.exception.UnAuthorisedException;
 import com.shubhu.staybooking.airBnbApp.repository.HotelRepository;
 import com.shubhu.staybooking.airBnbApp.repository.RoomRepository;
+import com.shubhu.staybooking.airBnbApp.security.CustomUserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +42,12 @@ public class RoomServiceImpl implements RoomService {
         Hotel hotel = hotelRepository
                 .findById(hotelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID : " + hotelId));
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserPrincipal principal =
+                (CustomUserPrincipal) authentication.getPrincipal();
+        User user = principal.getUser();
+
         if(!user.equals(hotel.getOwner())){
             throw new UnAuthorisedException("This owner does not own this hotel with id : " + hotelId);
         }
@@ -81,7 +88,11 @@ public class RoomServiceImpl implements RoomService {
         Room room = roomRepository
                 .findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID : " + roomId));
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        User user = principal.getUser();
+
         if(!user.equals(room.getHotel().getOwner())){
             throw new UnAuthorisedException("This owner does not own this room with id : " + roomId);
         }
@@ -97,7 +108,12 @@ public class RoomServiceImpl implements RoomService {
         Room room = roomRepository
                 .findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID : " + roomId));
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserPrincipal principal =
+                (CustomUserPrincipal) authentication.getPrincipal();
+        User user = principal.getUser();
+
         if(!user.equals(room.getHotel().getOwner())){
             throw new UnAuthorisedException("This owner does not own this room with id : " + roomId);
         }

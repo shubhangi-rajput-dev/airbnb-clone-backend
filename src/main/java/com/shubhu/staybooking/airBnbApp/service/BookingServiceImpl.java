@@ -8,9 +8,12 @@ import com.shubhu.staybooking.airBnbApp.entity.enums.BookingStatus;
 import com.shubhu.staybooking.airBnbApp.exception.ResourceNotFoundException;
 import com.shubhu.staybooking.airBnbApp.exception.UnAuthorisedException;
 import com.shubhu.staybooking.airBnbApp.repository.*;
+import com.shubhu.staybooking.airBnbApp.security.CustomUserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +42,11 @@ public class BookingServiceImpl implements BookingService {
     private final InventoryRepository inventoryRepository;
     /** Mapper used for entity and DTO conversion. */
     private final ModelMapper modelMapper;
+    /** Service responsible for creating payment checkout sessions. */
+    private final CheckoutService checkoutService;
+    /** Base frontend URL used to construct payment success and failure redirect URLs.*/
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     @Override
     @Transactional
@@ -104,12 +112,42 @@ public class BookingServiceImpl implements BookingService {
         return modelMapper.map(booking, BookingDto.class);
     }
 
-    // A booking remains valid for 10 minutes after reservation creation.
+    @Override
+    public String initiatePayment(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(
+                () -> new ResourceNotFoundException("Booking not found with id : " + bookingId)
+        );
+        User user = getCurrentUser();
+
+        if(!user.getId().equals(booking.getUser().getId())) {
+            throw new UnAuthorisedException("Booking does not belong to this user with id : " + user.getId());
+        }
+
+        if (hasBookingExpired(booking)) {
+            throw new IllegalStateException("Booking has already expired");
+        }
+
+        String sessionUrl = checkoutService.getCheckoutSession(
+                booking,
+                frontendUrl + "/payment/success",
+                frontendUrl + "/payment/failure"
+        );
+
+        booking.setBookingStatus(BookingStatus.PAYMENTS_PENDING);
+        bookingRepository.save(booking);
+
+        return sessionUrl;
+    }
+
     public boolean hasBookingExpired(Booking booking) {
         return booking.getCreatedAt().plusMinutes(10).isBefore(LocalDateTime.now());
     }
 
     public User getCurrentUser() {
-        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserPrincipal principal =
+                (CustomUserPrincipal) authentication.getPrincipal();
+        return principal.getUser();
     }
+
 }

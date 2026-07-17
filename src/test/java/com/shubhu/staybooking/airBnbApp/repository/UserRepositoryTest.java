@@ -9,8 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -36,7 +40,7 @@ class UserRepositoryTest {
     void setUp() {
         user = User.builder()
                 .name("John Doe")
-                .email("john.doe@example.com")
+                .email(UUID.randomUUID() + "@example.com")
                 .password("password")
                 .roles(Set.of(Role.GUEST))
                 .build();

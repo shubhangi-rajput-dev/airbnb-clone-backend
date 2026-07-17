@@ -93,8 +93,9 @@ public class AuthService {
         ));
 
         // Retrieve the authenticated user from the Authentication object.
-        User user = (User) authentication.getPrincipal();
-
+        CustomUserPrincipal principal =
+                (CustomUserPrincipal) authentication.getPrincipal();
+        User user = principal.getUser();
         // Generate JWT access and refresh tokens for the authenticated user.
         String[] token = new String[2];
         token[0] = jwtService.generateAccessToken(user);
