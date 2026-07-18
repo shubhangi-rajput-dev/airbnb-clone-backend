@@ -64,4 +64,36 @@ public class HotelBookingController {
          return ResponseEntity.ok(Map.of("sessionUrl", sessionUrl));
     }
 
+    /**
+     * Cancels an existing booking.
+     * <p>
+     * Delegates the cancellation request to the service layer, which validates
+     * whether the booking is eligible for cancellation according to the
+     * application's business rules.
+     *
+     * @param bookingId unique identifier of the booking to cancel
+     * @return HTTP 204 (No Content) when the booking is canceled successfully
+     */
+    @PostMapping("/{bookingId}/cancel")
+    public ResponseEntity<Void> cancelBooking(
+            @PathVariable Long bookingId) {
+        bookingService.cancelBooking(bookingId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Retrieves the current status of a booking.
+     * <p>
+     * Returns the latest booking status (for example, RESERVED, CONFIRMED,
+     * CANCELLED, or COMPLETED) for the specified booking.
+     *
+     * @param bookingId unique identifier of the booking
+     * @return response containing the current booking status
+     */
+    @PostMapping("/{bookingId}/status")
+    public ResponseEntity<Map<String, String>> getBookingStatus(
+            @PathVariable Long bookingId) {
+        return ResponseEntity.ok(Map.of("status", bookingService.getBookingStatus(bookingId)));
+    }
+
 }

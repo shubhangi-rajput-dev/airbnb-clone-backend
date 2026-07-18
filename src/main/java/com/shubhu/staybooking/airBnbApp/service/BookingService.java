@@ -3,6 +3,8 @@ package com.shubhu.staybooking.airBnbApp.service;
 import com.shubhu.staybooking.airBnbApp.dto.BookingDto;
 import com.shubhu.staybooking.airBnbApp.dto.BookingRequestDto;
 import com.shubhu.staybooking.airBnbApp.dto.GuestDto;
+import com.stripe.model.Event;
+
 import java.util.List;
 
 /**
@@ -36,4 +38,29 @@ public interface BookingService {
      * @return checkout session URL for redirecting the user to complete payment
      */
     String initiatePayment(Long bookingId);
+
+    /**
+     * Processes a payment gateway webhook event.
+     * <p>
+     * Validates and handles supported payment events to update the
+     * corresponding booking state.
+     *
+     * @param event payment gateway webhook event
+     */
+    void capturePayment(Event event);
+
+    /**
+     * Cancels an existing booking.
+     *
+     * @param bookingId unique identifier of the booking to cancel
+     */
+    void cancelBooking(Long bookingId);
+
+    /**
+     * Retrieves the current status of the specified booking.
+     *
+     * @param bookingId unique identifier of the booking
+     * @return current booking status
+     */
+    String getBookingStatus(Long bookingId);
 }

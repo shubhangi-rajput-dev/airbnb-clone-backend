@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
@@ -78,6 +79,115 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     );
 
     /**
+     * Finds and pessimistically locks reserved inventory records for the
+     * specified room and date range.
+     * <p>
+     * The lock prevents concurrent transactions from modifying the same
+     * inventory while the reservation is being confirmed or canceled.
+     *
+     * @param roomId unique identifier of the room
+     * @param startDate booking start date
+     * @param endDate booking end date
+     * @param numberOfRooms number of rooms that must remain available
+     * @return list of locked inventory records matching the search criteria
+     */
+    @Query("""
+            SELECT i
+            FROM Inventory i
+            WHERE i.room.id = :roomId
+                AND i.date BETWEEN :startDate AND :endDate
+                AND (i.totalCount - i.bookedCount ) >= :numberOfRooms
+                AND i.closed = false
+            """)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    List<Inventory> findAndLockReservedInventory(
+            @Param("roomId") Long roomId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("numberOfRooms") int numberOfRooms
+    );
+
+    /**
+     * Reserves inventory for a booking by increasing the reserved room count.
+     * <p>
+     * Executes an update query to temporarily reserve rooms until the payment
+     * is completed or the booking is canceled.
+     *
+     * @param roomId unique identifier of the room
+     * @param startDate booking start date
+     * @param endDate booking end date
+     * @param numberOfRooms number of rooms to reserve
+     */
+    @Modifying
+    @Query("""
+                UPDATE Inventory i
+                SET i.reservedCount = i.reservedCount + :numberOfRooms,
+                    i.updatedAt = CURRENT_TIMESTAMP
+                WHERE i.room.id = :roomId
+                    AND i.date BETWEEN :startDate AND :endDate
+                    AND (i.totalCount - i.bookedCount - i.reservedCount) >= :numberOfRooms
+                    AND i.closed = false
+            """)
+    void initBooking(@Param("roomId") Long roomId,
+                        @Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate,
+                        @Param("numberOfRooms") int numberOfRooms);
+
+    /**
+     * Confirms a booking by converting reserved rooms into booked rooms.
+     * <p>
+     * Decreases the reserved count and increases the booked count after a
+     * successful payment confirmation.
+     *
+     * @param roomId unique identifier of the room
+     * @param startDate booking start date
+     * @param endDate booking end date
+     * @param numberOfRooms number of rooms to confirm
+     */
+    @Modifying
+    @Query("""
+                UPDATE Inventory i
+                SET i.reservedCount = i.reservedCount - :numberOfRooms,
+                    i.bookedCount = i.bookedCount + :numberOfRooms,
+                    i.updatedAt = CURRENT_TIMESTAMP
+                WHERE i.room.id = :roomId
+                    AND i.date BETWEEN :startDate AND :endDate
+                    AND (i.totalCount - i.bookedCount) >= :numberOfRooms
+                    AND i.reservedCount >= :numberOfRooms
+                    AND i.closed = false
+            """)
+    void confirmBooking(@Param("roomId") Long roomId,
+                        @Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate,
+                        @Param("numberOfRooms") int numberOfRooms);
+
+    /**
+     * Cancels a reservation by releasing previously reserved inventory.
+     * <p>
+     * Decreases the reserved room count, making the inventory available for
+     * future bookings.
+     *
+     * @param roomId unique identifier of the room
+     * @param startDate booking start date
+     * @param endDate booking end date
+     * @param numberOfRooms number of reserved rooms to release
+     */
+    @Modifying
+    @Query("""
+                UPDATE Inventory i
+                SET i.reservedCount = i.reservedCount - :numberOfRooms,
+                    i.updatedAt = CURRENT_TIMESTAMP
+                WHERE i.room.id = :roomId
+                    AND i.date BETWEEN :startDate AND :endDate
+                    AND (i.totalCount - i.bookedCount) >= :numberOfRooms
+                    AND i.closed = false
+            """)
+    void cancelBooking(@Param("roomId") Long roomId,
+                       @Param("startDate") LocalDate startDate,
+                       @Param("endDate") LocalDate endDate,
+                       @Param("numberOfRooms") Integer numberOfRooms);
+
+    /**
      * Finds inventory records for a hotel within a date range.
      *
      * @param hotel hotel entity
@@ -86,4 +196,5 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
      * @return inventory records within the date range
      */
     List<Inventory> findByHotelAndDateBetween(Hotel hotel, LocalDate startDate, LocalDate endDate);
+
 }
