@@ -1,5 +1,6 @@
 package com.shubhu.staybooking.airBnbApp.service;
 
+import com.shubhu.staybooking.airBnbApp.dto.ProfileUpdateRequestDto;
 import com.shubhu.staybooking.airBnbApp.entity.User;
 
 /**
@@ -14,4 +15,11 @@ public interface UserService {
      * @return user entity
      */
     User getUserById(Long id);
+
+    /**
+     * Updates the profile of the currently authenticated user.
+     *
+     * @param profileUpdateRequestDto profile update request containing the new user details
+     */
+    void updateProfile(ProfileUpdateRequestDto profileUpdateRequestDto);
 }

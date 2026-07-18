@@ -10,15 +10,13 @@ import com.shubhu.staybooking.airBnbApp.exception.ResourceNotFoundException;
 import com.shubhu.staybooking.airBnbApp.exception.UnAuthorisedException;
 import com.shubhu.staybooking.airBnbApp.repository.HotelRepository;
 import com.shubhu.staybooking.airBnbApp.repository.RoomRepository;
-import com.shubhu.staybooking.airBnbApp.security.CustomUserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import static com.shubhu.staybooking.airBnbApp.util.AppUtils.getCurrentUser;
 
 @Service
 @Slf4j
@@ -107,8 +105,9 @@ public class HotelServiceImpl implements HotelService {
         if(!user.equals(hotel.getOwner())){
             throw new UnAuthorisedException("This owner does not own this hotel with id : " + id);
         }
+        // Mark the hotel as active before preparing its inventory.
         hotel.setActive(true);
-        // Initializes inventory only once when a hotel is activated.
+        // Create inventory records for each room for the next one year.
         for (Room room : hotel.getRooms()) {
             inventoryService.initializeRoomForAYear(room);
         }
@@ -126,17 +125,15 @@ public class HotelServiceImpl implements HotelService {
         return new HotelInfoDto(modelMapper.map(hotel, HotelDto.class), rooms);
     }
 
-    /**
-     * Retrieves the currently authenticated user from Spring Security context.
-     *
-     * @return currently authenticated application user
-     */
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        CustomUserPrincipal principal =
-                (CustomUserPrincipal) authentication.getPrincipal();
-
-        return principal.getUser();
+    @Override
+    public List<HotelDto> getAllHotels() {
+        User user = getCurrentUser();
+        log.info("Getting all the hotels for this admin user id : {}", getCurrentUser().getId());
+        List<Hotel> hotels = hotelRepository.findByOwner(user);
+        return hotels
+                .stream()
+                .map((hotel) ->
+                        modelMapper.map(hotel, HotelDto.class))
+                .toList();
     }
 }

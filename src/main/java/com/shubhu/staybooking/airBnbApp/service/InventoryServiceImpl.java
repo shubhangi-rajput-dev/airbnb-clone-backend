@@ -1,13 +1,15 @@
 package com.shubhu.staybooking.airBnbApp.service;
 
-import com.shubhu.staybooking.airBnbApp.dto.HotelPriceDto;
-import com.shubhu.staybooking.airBnbApp.dto.HotelSearchRequestDto;
-import com.shubhu.staybooking.airBnbApp.dto.HotelDto;
-import com.shubhu.staybooking.airBnbApp.dto.HotelPriceResponseDto;
+import com.shubhu.staybooking.airBnbApp.dto.*;
 import com.shubhu.staybooking.airBnbApp.entity.Inventory;
 import com.shubhu.staybooking.airBnbApp.entity.Room;
+import com.shubhu.staybooking.airBnbApp.entity.User;
+import com.shubhu.staybooking.airBnbApp.exception.ResourceNotFoundException;
 import com.shubhu.staybooking.airBnbApp.repository.HotelMinPriceRepository;
+import com.shubhu.staybooking.airBnbApp.repository.HotelRepository;
 import com.shubhu.staybooking.airBnbApp.repository.InventoryRepository;
+import com.shubhu.staybooking.airBnbApp.repository.RoomRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -16,8 +18,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
+import org.springframework.security.access.AccessDeniedException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.stream.Collectors;
+import static com.shubhu.staybooking.airBnbApp.util.AppUtils.getCurrentUser;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +32,10 @@ import java.time.temporal.ChronoUnit;
  * Service implementation handling inventory-related business operations.
  */
 public class InventoryServiceImpl implements InventoryService {
+    /** Repository for hotel persistence operations. */
+    private final HotelRepository hotelRepository;
+    /** Repository for room persistence operations. */
+    private final RoomRepository roomRepository;
     /** Mapper used for entity and DTO conversion. */
     private final ModelMapper modelMapper;
     /** Repository for inventory persistence operations. */
@@ -37,6 +47,7 @@ public class InventoryServiceImpl implements InventoryService {
     public void initializeRoomForAYear(Room room) {
         LocalDate today = LocalDate.now();
         LocalDate endDate = today.plusYears(1);
+        // Create one inventory record for each day over the next year.
         for (; !today.isAfter(endDate); today = today.plusDays(1)) {
             Inventory inventory = Inventory.builder()
                     .hotel(room.getHotel())
@@ -86,5 +97,67 @@ public class InventoryServiceImpl implements InventoryService {
             HotelDto hotelDto = modelMapper.map(dto.getHotel(), HotelDto.class);
             return new HotelPriceResponseDto(hotelDto, dto.getPrice());
         });
+    }
+
+    @Override
+    public void updateRoomPrice(Room room) {
+        // Apply the updated room price to all future inventory records.
+        inventoryRepository.updatePriceForFutureInventories(
+                room.getId(),
+                room.getBasePrice(),
+                LocalDate.now()
+        );
+    }
+
+    @Override
+    public List<InventoryDto> getAllInventoryByRoom(Long roomId) {
+        log.info("Getting all inventories for room with id : {}", roomId);
+
+        Room room = roomRepository.findById(roomId).orElseThrow(() ->
+                new ResourceNotFoundException("Room not found with id: " + roomId));
+
+        // Only the hotel owner can view room inventory.
+        User user = getCurrentUser();
+        if(!user.equals(room.getHotel().getOwner())){
+            throw new AccessDeniedException("This owner does not own this hotel inventory");
+        }
+        return inventoryRepository.findByRoomOrderByDate(room)
+                .stream()
+                .map((element) -> modelMapper.map(element, InventoryDto.class))
+                .collect(Collectors.toList()
+        );
+    }
+
+    @Override
+    @Transactional
+    public void updateInventory(Long roomId, UpdateInventoryRequestDto updateInventoryRequestDto) {
+        log.info("Update All inventory by room with id: {} between date range: {} - {}", roomId,
+                updateInventoryRequestDto.getStartDate(), updateInventoryRequestDto.getEndDate());
+        Room room = roomRepository.findById(roomId).orElseThrow(() ->
+                new ResourceNotFoundException("Room not found with id: " + roomId));
+
+        // Only the hotel owner can update room inventory.
+        User user = getCurrentUser();
+        if(!user.equals(room.getHotel().getOwner())){
+            throw new AccessDeniedException("This owner does not own this hotel inventory");
+        }
+
+        // Lock inventory records to prevent concurrent updates.
+        List<Inventory> lockedInventories = inventoryRepository.getInventoryAndLockBeforeUpdate(roomId,
+                updateInventoryRequestDto.getStartDate(),
+                updateInventoryRequestDto.getEndDate());
+
+        if (lockedInventories.isEmpty()) {
+            throw new ResourceNotFoundException(
+                    "No inventory found for the selected room and date range"
+            );
+        }
+        // Apply the requested inventory changes to the selected date range.
+        inventoryRepository.updateInventory(roomId,
+                updateInventoryRequestDto.getStartDate(),
+                updateInventoryRequestDto.getEndDate(),
+                updateInventoryRequestDto.getClosed(),
+                updateInventoryRequestDto.getSurgeFactor()
+        );
     }
 }

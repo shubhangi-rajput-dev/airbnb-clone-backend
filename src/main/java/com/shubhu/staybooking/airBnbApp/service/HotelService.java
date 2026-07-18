@@ -2,11 +2,10 @@ package com.shubhu.staybooking.airBnbApp.service;
 
 import com.shubhu.staybooking.airBnbApp.dto.HotelDto;
 import com.shubhu.staybooking.airBnbApp.dto.HotelInfoDto;
-
+import java.util.List;
 /**
  * Service interface defining hotel-related business operations.
  */
-
 public interface HotelService {
 
     /**
@@ -55,4 +54,11 @@ public interface HotelService {
      * @return hotel information details
      */
     HotelInfoDto getHotelInfoById(Long hotelId);
+
+    /**
+     * Retrieves all hotels.
+     *
+     * @return list of all hotels
+     */
+    List<HotelDto> getAllHotels();
 }

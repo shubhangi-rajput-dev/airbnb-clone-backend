@@ -1,5 +1,6 @@
 package com.shubhu.staybooking.airBnbApp.entity;
 
+import com.shubhu.staybooking.airBnbApp.entity.enums.Gender;
 import com.shubhu.staybooking.airBnbApp.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,6 +30,11 @@ public class User implements UserDetails{
     private Long id;
 
     private String name;
+
+    private String dateOfBirth;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
     @Column(unique = true, nullable = false)
     private String email;

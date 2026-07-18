@@ -3,7 +3,6 @@ package com.shubhu.staybooking.airBnbApp.service;
 import com.shubhu.staybooking.airBnbApp.entity.Booking;
 import com.shubhu.staybooking.airBnbApp.entity.User;
 import com.shubhu.staybooking.airBnbApp.repository.BookingRepository;
-import com.shubhu.staybooking.airBnbApp.security.CustomUserPrincipal;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.checkout.Session;
@@ -11,10 +10,9 @@ import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
+import static com.shubhu.staybooking.airBnbApp.util.AppUtils.getCurrentUser;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +23,7 @@ import java.math.BigDecimal;
  */
 public class CheckoutServiceImpl implements CheckoutService {
 
+    /** Repository used to persist Stripe payment session details against bookings. */
     private final BookingRepository bookingRepository;
 
     /**
@@ -39,12 +38,10 @@ public class CheckoutServiceImpl implements CheckoutService {
     @Override
     public String getCheckoutSession(Booking booking, String successUrl, String failureUrl) {
         log.info("Creating session for booking with ID : {}", booking.getId());
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserPrincipal principal =
-                (CustomUserPrincipal) authentication.getPrincipal();
-        User user = principal.getUser();
+        User user = getCurrentUser();
 
         try {
+            // Create a Stripe customer using the authenticated user's details.
             CustomerCreateParams customerCreateParams = CustomerCreateParams.builder()
                     .setName(user.getName())
                     .setEmail(user.getEmail())
@@ -53,7 +50,7 @@ public class CheckoutServiceImpl implements CheckoutService {
             Customer customer = Customer.create(
                     customerCreateParams
             );
-
+            // Build a one-time payment session for the booking amount.
             SessionCreateParams sessionParams = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
                     .setBillingAddressCollection(SessionCreateParams.BillingAddressCollection.REQUIRED)
@@ -78,9 +75,9 @@ public class CheckoutServiceImpl implements CheckoutService {
                                     .build()
                     )
                     .build();
-
+            // Create the checkout session with Stripe.
             Session session = Session.create(sessionParams);
-
+            // Persist the Stripe session ID so webhook events can resolve the booking.
             booking.setPaymentSessionId(session.getId());
             bookingRepository.save(booking);
 

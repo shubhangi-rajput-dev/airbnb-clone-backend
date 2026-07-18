@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -19,6 +20,11 @@ import java.util.List;
  */
 public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 
+    /**
+     * Deletes all inventory records associated with the specified room.
+     *
+     * @param room room entity whose inventory should be removed
+     */
     void deleteByRoom(Room room);
 
     /**
@@ -197,4 +203,78 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
      */
     List<Inventory> findByHotelAndDateBetween(Hotel hotel, LocalDate startDate, LocalDate endDate);
 
+    /**
+     * Updates the price of all future inventory records for the specified room.
+     *
+     * @param roomId room identifier
+     * @param price updated room price
+     * @param currentDate date from which the new price should be applied
+     */
+    @Modifying
+    @Query("""
+        UPDATE Inventory i
+        SET i.price = :price,
+            i.updatedAt = CURRENT_TIMESTAMP
+        WHERE i.room.id = :roomId
+          AND i.date >= :currentDate
+        """)
+    void updatePriceForFutureInventories(
+            @Param("roomId") Long roomId,
+            @Param("price") BigDecimal price,
+            @Param("currentDate") LocalDate currentDate
+    );
+
+    /**
+     * Retrieves and pessimistically locks inventory records before applying updates.
+     *
+     * @param roomId room identifier
+     * @param startDate inventory update start date
+     * @param endDate inventory update end date
+     * @return locked inventory records within the specified date range
+     */
+    @Query("""
+                SELECT i
+                FROM Inventory i
+                WHERE i.room.id = :roomId
+                    AND i.date BETWEEN :startDate AND :endDate
+            """)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    List<Inventory> getInventoryAndLockBeforeUpdate(@Param("roomId") Long roomId,
+                         @Param("startDate") LocalDate startDate,
+                         @Param("endDate") LocalDate endDate
+    );
+
+    /**
+     * Updates inventory settings for the specified room within the given date range.
+     *
+     * @param roomId room identifier
+     * @param startDate inventory update start date
+     * @param endDate inventory update end date
+     * @param closed indicates whether bookings should be closed
+     * @param surgeFactor dynamic pricing multiplier to apply
+     */
+    @Modifying
+    @Query("""
+                UPDATE Inventory i
+                SET i.surgeFactor = :surgeFactor,
+                    i.closed = :closed,
+                    i.updatedAt = CURRENT_TIMESTAMP
+                WHERE i.room.id = :roomId
+                    AND i.date BETWEEN :startDate AND :endDate
+                    AND i.closed = false
+            """)
+    void updateInventory(@Param("roomId") Long roomId,
+                         @Param("startDate") LocalDate startDate,
+                         @Param("endDate") LocalDate endDate,
+                         @Param("closed") boolean closed,
+                         @Param("surgeFactor") BigDecimal surgeFactor
+    );
+
+    /**
+     * Retrieves all inventory records for the specified room ordered by date.
+     *
+     * @param room room entity
+     * @return ordered list of inventory records
+     */
+    List<Inventory> findByRoomOrderByDate(Room room);
 }

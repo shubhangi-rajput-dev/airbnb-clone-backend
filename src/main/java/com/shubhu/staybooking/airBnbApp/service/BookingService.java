@@ -3,8 +3,9 @@ package com.shubhu.staybooking.airBnbApp.service;
 import com.shubhu.staybooking.airBnbApp.dto.BookingDto;
 import com.shubhu.staybooking.airBnbApp.dto.BookingRequestDto;
 import com.shubhu.staybooking.airBnbApp.dto.GuestDto;
+import com.shubhu.staybooking.airBnbApp.dto.HotelReportDto;
 import com.stripe.model.Event;
-
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -63,4 +64,29 @@ public interface BookingService {
      * @return current booking status
      */
     String getBookingStatus(Long bookingId);
+
+    /**
+     * Retrieves all bookings associated with the specified hotel.
+     *
+     * @param hotelId unique identifier of the hotel
+     * @return list of bookings for the specified hotel
+     */
+    List<BookingDto> getAllBookingsByHotelId(Long hotelId);
+
+    /**
+     * Generates a booking and revenue report for the specified hotel.
+     *
+     * @param hotelId unique identifier of the hotel
+     * @param startDate start date of the reporting period
+     * @param endDate end date of the reporting period
+     * @return hotel booking and revenue report
+     */
+    HotelReportDto getHotelReport(Long hotelId, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * Retrieves all bookings of the currently authenticated user.
+     *
+     * @return list of bookings belonging to the current user
+     */
+    List<BookingDto> getMyBookings();
 }

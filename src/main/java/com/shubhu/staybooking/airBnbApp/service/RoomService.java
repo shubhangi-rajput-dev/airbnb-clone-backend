@@ -34,7 +34,7 @@ public interface RoomService {
     RoomDto getRoomById(Long roomId);
 
     /**
-     * Updates room details by identifier.
+     * Updates the details of an existing room.
      *
      * @param roomId room identifier
      * @param roomDto updated room details
